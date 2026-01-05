@@ -9,11 +9,9 @@ import Footer from './Footer';
 
 const HomePage = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Navbar />
       <div className="relative">
-        {/* subtle dark overlay between background and content for readability */}
-        <div className="absolute inset-0 bg-black/45 pointer-events-none" />
         <div className="relative pt-16">
           <Hero />
           <Features />

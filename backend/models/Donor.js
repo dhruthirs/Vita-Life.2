@@ -37,9 +37,45 @@ const donorSchema = new mongoose.Schema({
   isAvailable: {
     type: Boolean,
     default: true
+  },
+  // Geolocation fields
+  latitude: {
+    type: Number,
+    required: false
+  },
+  longitude: {
+    type: Number,
+    required: false
+  },
+  address: {
+    type: String,
+    required: false,
+    trim: true
+  },
+  // Donation history
+  donationHistory: [{
+    date: Date,
+    quantity: Number
+  }],
+  // Medical information
+  medicalConditions: [String],
+  allergies: [String],
+  // Engagement metrics
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
+  },
+  reviewCount: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
 });
+
+// Index for geospatial queries
+donorSchema.index({ latitude: 1, longitude: 1 });
 
 module.exports = mongoose.model('Donor', donorSchema);

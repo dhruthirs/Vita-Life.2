@@ -1,32 +1,42 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./App.css";
+import "./styles/App.css";
 import MainLayout from "./components/MainLayout";
 import HomePage from "./components/HomePage";
 import Dashboard from "./components/Dashboard";
 import DonorSearchPage from "./components/DonorSearchPage";
 import DonorRegistrationForm from "./components/DonorRegistrationForm";
-import Reports from "./components/Reports";
+import DonorMap from "./components/DonorMap";
+import BloodRequestForm from "./components/BloodRequestForm";
 import Settings from "./components/Settings";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          }
-        />
+          <Route
+            path="/dashboard"
+            element={
+              <MainLayout>
+                <Dashboard />
+              </MainLayout>
+            }
+          />
         <Route
           path="/search-donor"
           element={
             <MainLayout>
               <DonorSearchPage />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/donor-map"
+          element={
+            <MainLayout>
+              <DonorMap />
             </MainLayout>
           }
         />
@@ -39,10 +49,10 @@ function App() {
           }
         />
         <Route
-          path="/reports"
+          path="/request-blood"
           element={
             <MainLayout>
-              <Reports />
+              <BloodRequestForm />
             </MainLayout>
           }
         />
@@ -54,7 +64,8 @@ function App() {
             </MainLayout>
           }
         />
-      </Routes>
+        </Routes>
+      </div>
     </Router>
   );
 }

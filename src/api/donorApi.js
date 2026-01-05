@@ -1,129 +1,185 @@
 // API Service for Blood Bank Management System
-// Temporarily using mock data until backend is fixed
+import axios from 'axios';
 
-// Mock data for donors
-const mockDonors = [
-  {
-    _id: '1',
-    name: 'John Doe',
-    bloodGroup: 'A+',
-    city: 'Springfield',
-    phone: '555-0101',
-    email: 'john@example.com',
-    age: 30,
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '2',
-    name: 'Jane Smith',
-    bloodGroup: 'B-',
-    city: 'Shelbyville',
-    phone: '555-0202',
-    email: 'jane@example.com',
-    age: 25,
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '3',
-    name: 'Bob Johnson',
-    bloodGroup: 'O+',
-    city: 'Springfield',
-    phone: '555-0303',
-    email: 'bob@example.com',
-    age: 35,
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '4',
-    name: 'Alice Brown',
-    bloodGroup: 'AB+',
-    city: 'Capital City',
-    phone: '555-0404',
-    email: 'alice@example.com',
-    age: 28,
-    createdAt: new Date().toISOString()
-  }
-];
-
-// Simulate API delay
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
  * Register a new donor
- * @param {Object} donorData - Donor information
- * @returns {Promise} Response from server
  */
 export const registerDonor = async (donorData) => {
-  console.log('📝 Registering donor (mock):', donorData);
-
-  // Simulate API delay
-  await delay(500);
-
-  // Create new donor with mock ID
-  const newDonor = {
-    _id: Date.now().toString(),
-    ...donorData,
-    createdAt: new Date().toISOString()
-  };
-
-  // Add to mock data
-  mockDonors.push(newDonor);
-
-  console.log('✅ Donor registered (mock):', newDonor);
-
-  // Return expected format
-  return {
-    success: true,
-    data: newDonor,
-    message: 'Donor registered successfully'
-  };
+  try {
+    console.log('📝 Registering donor:', donorData);
+    const response = await axios.post(`${API_BASE_URL}/donors`, donorData);
+    console.log('✅ Donor registered:', response.data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('❌ Error registering donor:', error.message);
+    return { success: false, error: error.message };
+  }
 };
 
 /**
  * Get all donors
- * @returns {Promise} Array of all donors
  */
 export const getAllDonors = async () => {
-  console.log('📥 Fetching all donors (mock)');
-
-  // Simulate API delay
-  await delay(300);
-
-  console.log(`📤 Returning ${mockDonors.length} donors (mock)`);
-
-  // Return expected format
-  return {
-    success: true,
-    data: [...mockDonors],
-    message: 'Donors fetched successfully'
-  };
+  try {
+    console.log('📥 Fetching all donors');
+    const response = await axios.get(`${API_BASE_URL}/donors`);
+    console.log(`📤 Returned ${response.data.data?.length || 0} donors`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching donors:', error.message);
+    return { success: false, error: error.message, data: [] };
+  }
 };
 
 /**
  * Search donors by blood group and/or city
- * @param {string} bloodGroup - Blood group to search for
- * @param {string} city - City to search for
- * @returns {Promise} Filtered list of donors
  */
 export const searchDonors = async (bloodGroup = '', city = '') => {
-  console.log('🔍 Searching donors (mock):', { bloodGroup, city });
-
-  // Simulate API delay
-  await delay(400);
-
-  // Filter mock data
-  const filtered = mockDonors.filter(donor => {
-    const bloodMatch = !bloodGroup || donor.bloodGroup.toLowerCase().includes(bloodGroup.toLowerCase());
-    const cityMatch = !city || donor.city.toLowerCase().includes(city.toLowerCase());
-    return bloodMatch && cityMatch;
-  });
-
-  console.log(`📤 Search returned ${filtered.length} donors (mock)`);
-
-  // Return expected format
-  return {
-    success: true,
-    data: [...filtered],
-    message: 'Search completed successfully'
-  };
+  try {
+    console.log('🔍 Searching donors:', { bloodGroup, city });
+    const params = new URLSearchParams();
+    if (bloodGroup) params.append('bloodGroup', bloodGroup);
+    if (city) params.append('city', city);
+    
+    const response = await axios.get(`${API_BASE_URL}/donors/search?${params}`);
+    console.log(`📤 Search returned ${response.data.data?.length || 0} donors`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error searching donors:', error.message);
+    return { success: false, error: error.message, data: [] };
+  }
 };
+
+/**
+ * Find nearby donors by location
+ */
+export const getNearbyDonors = async (latitude, longitude, radius = 10, bloodGroup = '') => {
+  try {
+    console.log('📍 Finding nearby donors:', { latitude, longitude, radius, bloodGroup });
+    const params = new URLSearchParams();
+    params.append('latitude', latitude);
+    params.append('longitude', longitude);
+    params.append('radius', radius);
+    if (bloodGroup) params.append('bloodGroup', bloodGroup);
+    
+    const response = await axios.get(`${API_BASE_URL}/donors/nearby?${params}`);
+    console.log(`📤 Found ${response.data.data?.length || 0} nearby donors`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error finding nearby donors:', error.message);
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
+/**
+ * Create a blood request
+ */
+export const createBloodRequest = async (requestData) => {
+  try {
+    console.log('❤️ Creating blood request:', requestData);
+    const response = await axios.post(`${API_BASE_URL}/requests`, requestData);
+    console.log('✅ Blood request created:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error creating request:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get all blood requests
+ */
+export const getAllBloodRequests = async () => {
+  try {
+    console.log('📥 Fetching all blood requests');
+    const response = await axios.get(`${API_BASE_URL}/requests`);
+    console.log(`📤 Returned ${response.data.data?.length || 0} requests`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching requests:', error.message);
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
+/**
+ * Get blood request by ID
+ */
+export const getBloodRequestById = async (requestId) => {
+  try {
+    console.log('📥 Fetching blood request:', requestId);
+    const response = await axios.get(`${API_BASE_URL}/requests/${requestId}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching request:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update blood request status
+ */
+export const updateRequestStatus = async (requestId, status) => {
+  try {
+    console.log('🔄 Updating request status:', { requestId, status });
+    const response = await axios.patch(
+      `${API_BASE_URL}/requests/${requestId}/status`,
+      { status }
+    );
+    console.log('✅ Status updated:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error updating status:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Rate a blood request
+ */
+export const rateBloodRequest = async (requestId, rating, feedback = '') => {
+  try {
+    console.log('⭐ Rating request:', { requestId, rating });
+    const response = await axios.patch(
+      `${API_BASE_URL}/requests/${requestId}/rate`,
+      { rating, feedback }
+    );
+    console.log('✅ Request rated:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error rating request:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get urgent blood requests
+ */
+export const getUrgentRequests = async () => {
+  try {
+    console.log('🚨 Fetching urgent requests');
+    const response = await axios.get(`${API_BASE_URL}/requests/urgent`);
+    console.log(`📤 Found ${response.data.data?.length || 0} urgent requests`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching urgent requests:', error.message);
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
+/**
+ * Delete blood request
+ */
+export const deleteBloodRequest = async (requestId) => {
+  try {
+    console.log('🗑️ Deleting request:', requestId);
+    const response = await axios.delete(`${API_BASE_URL}/requests/${requestId}`);
+    console.log('✅ Request deleted');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error deleting request:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+

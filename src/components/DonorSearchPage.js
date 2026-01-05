@@ -57,22 +57,29 @@ const DonorSearchPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Search Donors</h1>
-        <p className="text-gray-700 mt-1">Find donors by blood type or location</p>
+      <div className="mb-8">
+        <h1 className="text-4xl font-black text-white drop-shadow-lg flex items-center gap-3 mb-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+            <Search className="w-6 h-6 text-white" />
+          </div>
+          Search Donors
+        </h1>
+        <p className="text-lg text-white/90 font-semibold drop-shadow-md">
+          Find donors by blood type or location
+        </p>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4 md:flex md:items-end md:space-y-0 md:space-x-4">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 space-y-6 md:flex md:items-end md:space-y-0 md:space-x-4 border-2 border-slate-700">
         {/* Blood Type Filter */}
         <div className="flex-1">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-white mb-2">
             Blood Group
           </label>
           <select
             value={selectedBloodType}
             onChange={(e) => setSelectedBloodType(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-slate-600 rounded-lg bg-slate-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
           >
             <option value="">All Blood Types</option>
             {bloodTypes.map((type) => (
@@ -85,17 +92,17 @@ const DonorSearchPage = () => {
 
         {/* Location/Search Filter */}
         <div className="flex-1">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-white mb-2">
             Location / Name / Phone
           </label>
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+            <Search className="absolute left-3 top-3 text-purple-400" size={18} />
             <input
               type="text"
               placeholder="Enter location, name, or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+              className="w-full pl-10 pr-4 py-2 border border-slate-600 rounded-lg bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
             />
           </div>
         </div>
@@ -106,7 +113,7 @@ const DonorSearchPage = () => {
             setSearchQuery("");
             setSelectedBloodType("");
           }}
-          className="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+          className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
         >
           Reset
         </button>
