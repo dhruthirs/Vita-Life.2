@@ -36,3 +36,22 @@
     transform: rotate(360deg);
   }
 }
+/* --- ADD THIS TO THE BOTTOM OF YOUR CSS --- */
+
+/* 1. Removes underlines from all clickable text/links */
+a, .App-link {
+  text-decoration: none !important;
+}
+
+/* 2. Removes horizontal lines from tables, lists, and dividers */
+tr, td, th, li, hr {
+  border-bottom: none !important;
+  border-top: none !important;
+  border-color: transparent !important;
+}
+
+/* 3. Global override to ensure no element forces a bottom line */
+* {
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
