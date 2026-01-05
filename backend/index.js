@@ -1,41 +1,119 @@
+console.log('🚀 Starting Blood Donation Backend...');
+
 const express = require('express');
 const cors = require('cors');
-const app = express();
+const mongoose = require('mongoose');
+require('dotenv').config();
 
+console.log('📦 Loaded dependencies');
+
+const app = express();
+const PORT = 5000;
+
+console.log('⚙️  Setting up middleware...');
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-let donors = [
-  { id: 1, name: 'John Doe', bloodGroup: 'A+', city: 'Springfield', phone: '555-0101' },
-  { id: 2, name: 'Jane Smith', bloodGroup: 'B-', city: 'Shelbyville', phone: '555-0202' }
-];
-
-app.get('/api/donors', (req, res) => {
-  res.json(donors);
+console.log('🗄️  Connecting to MongoDB...');
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI).then(() => {
+  console.log('✅ MongoDB connected successfully');
+}).catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  process.exit(1);
 });
 
-app.post('/api/donors', (req, res) => {
-  const donor = req.body;
-  if (!donor || !donor.name) {
-    return res.status(400).json({ message: 'Invalid donor data' });
+// Donor Schema
+console.log('📋 Setting up Donor schema...');
+const donorSchema = new mongoose.Schema({
+  name: String,
+  bloodGroup: String,
+  city: String,
+  phone: String,
+  email: String,
+  age: Number
+});
+
+const Donor = mongoose.model('Donor', donorSchema);
+
+// Routes
+console.log('🛣️  Setting up routes...');
+app.get('/api/donors', async (req, res) => {
+  console.log('📥 GET /api/donors request received');
+  try {
+    const donors = await Donor.find();
+    console.log(`📤 Returning ${donors.length} donors`);
+    res.json(donors);
+  } catch (error) {
+    console.error('❌ Error fetching donors:', error.message);
+    res.status(500).json({ error: error.message });
   }
-  const newId = donors.length ? Math.max(...donors.map(d => d.id)) + 1 : 1;
-  const newDonor = { id: newId, ...donor };
-  donors.push(newDonor);
-  res.status(201).json(newDonor);
 });
 
-app.get('/api/donors/search', (req, res) => {
-  const { bloodGroup = '', city = '' } = req.query;
-  const result = donors.filter(d => {
-    const matchBlood = bloodGroup ? d.bloodGroup.toLowerCase() === bloodGroup.toLowerCase() : true;
-    const matchCity = city ? d.city.toLowerCase() === city.toLowerCase() : true;
-    return matchBlood && matchCity;
+app.post('/api/donors', async (req, res) => {
+  console.log('📥 POST /api/donors request received');
+  try {
+    const donor = new Donor(req.body);
+    await donor.save();
+    console.log('✅ Donor saved:', donor.name);
+    res.status(201).json(donor);
+  } catch (error) {
+    console.error('❌ Error saving donor:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/donors/search', async (req, res) => {
+  console.log('📥 GET /api/donors/search request received');
+  try {
+    const { bloodGroup, city } = req.query;
+    const query = {};
+    if (bloodGroup) query.bloodGroup = bloodGroup;
+    if (city) query.city = city;
+    const donors = await Donor.find(query);
+    console.log(`📤 Search returned ${donors.length} donors`);
+    res.json(donors);
+  } catch (error) {
+    console.error('❌ Error searching donors:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Test route
+app.get('/', (req, res) => {
+  console.log('📥 GET / request received');
+  res.send('Blood Donation API is running!');
+});
+
+// Start server
+console.log(`🌐 Attempting to start server on port ${PORT}...`);
+try {
+  const server = app.listen(PORT, () => {
+    console.log(`🎉 SUCCESS: Server running on http://localhost:${PORT}`);
+    console.log(`🔗 API endpoints:`);
+    console.log(`   GET  /api/donors`);
+    console.log(`   POST /api/donors`);
+    console.log(`   GET  /api/donors/search?bloodGroup=A+&city=City`);
   });
-  res.json(result);
-});
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-});
+  server.on('error', (err) => {
+    console.error('❌ Server error:', err.message);
+    process.exit(1);
+  });
+
+  // Keep process alive
+  process.on('SIGINT', () => {
+    console.log('🛑 Shutting down server...');
+    server.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+
+} catch (error) {
+  console.error('❌ Failed to start server:', error.message);
+  process.exit(1);
+}
+
+console.log('🏁 Server setup complete');

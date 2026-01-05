@@ -1,7 +1,52 @@
 // API Service for Blood Bank Management System
-// Integrates with Vita-life backend at http://localhost:5000/api
+// Temporarily using mock data until backend is fixed
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Mock data for donors
+const mockDonors = [
+  {
+    _id: '1',
+    name: 'John Doe',
+    bloodGroup: 'A+',
+    city: 'Springfield',
+    phone: '555-0101',
+    email: 'john@example.com',
+    age: 30,
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: '2',
+    name: 'Jane Smith',
+    bloodGroup: 'B-',
+    city: 'Shelbyville',
+    phone: '555-0202',
+    email: 'jane@example.com',
+    age: 25,
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: '3',
+    name: 'Bob Johnson',
+    bloodGroup: 'O+',
+    city: 'Springfield',
+    phone: '555-0303',
+    email: 'bob@example.com',
+    age: 35,
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: '4',
+    name: 'Alice Brown',
+    bloodGroup: 'AB+',
+    city: 'Capital City',
+    phone: '555-0404',
+    email: 'alice@example.com',
+    age: 28,
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Simulate API delay
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * Register a new donor
@@ -9,26 +54,29 @@ const API_BASE_URL = 'http://localhost:5000/api';
  * @returns {Promise} Response from server
  */
 export const registerDonor = async (donorData) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/donors`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(donorData),
-    });
+  console.log('📝 Registering donor (mock):', donorData);
 
-    const data = await response.json();
+  // Simulate API delay
+  await delay(500);
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to register donor');
-    }
+  // Create new donor with mock ID
+  const newDonor = {
+    _id: Date.now().toString(),
+    ...donorData,
+    createdAt: new Date().toISOString()
+  };
 
-    return data;
-  } catch (error) {
-    console.error('Error registering donor:', error);
-    throw error;
-  }
+  // Add to mock data
+  mockDonors.push(newDonor);
+
+  console.log('✅ Donor registered (mock):', newDonor);
+
+  // Return expected format
+  return {
+    success: true,
+    data: newDonor,
+    message: 'Donor registered successfully'
+  };
 };
 
 /**
@@ -36,20 +84,19 @@ export const registerDonor = async (donorData) => {
  * @returns {Promise} Array of all donors
  */
 export const getAllDonors = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/donors`);
+  console.log('📥 Fetching all donors (mock)');
 
-    const data = await response.json();
+  // Simulate API delay
+  await delay(300);
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch donors');
-    }
+  console.log(`📤 Returning ${mockDonors.length} donors (mock)`);
 
-    return data;
-  } catch (error) {
-    console.error('Error fetching donors:', error);
-    throw error;
-  }
+  // Return expected format
+  return {
+    success: true,
+    data: [...mockDonors],
+    message: 'Donors fetched successfully'
+  };
 };
 
 /**
@@ -59,26 +106,24 @@ export const getAllDonors = async () => {
  * @returns {Promise} Filtered list of donors
  */
 export const searchDonors = async (bloodGroup = '', city = '') => {
-  try {
-    const params = new URLSearchParams();
-    if (bloodGroup) params.append('bloodGroup', bloodGroup);
-    if (city) params.append('city', city);
+  console.log('🔍 Searching donors (mock):', { bloodGroup, city });
 
-    const url = params.toString() 
-      ? `${API_BASE_URL}/donors/search?${params.toString()}`
-      : `${API_BASE_URL}/donors`;
+  // Simulate API delay
+  await delay(400);
 
-    const response = await fetch(url);
+  // Filter mock data
+  const filtered = mockDonors.filter(donor => {
+    const bloodMatch = !bloodGroup || donor.bloodGroup.toLowerCase().includes(bloodGroup.toLowerCase());
+    const cityMatch = !city || donor.city.toLowerCase().includes(city.toLowerCase());
+    return bloodMatch && cityMatch;
+  });
 
-    const data = await response.json();
+  console.log(`📤 Search returned ${filtered.length} donors (mock)`);
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to search donors');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error searching donors:', error);
-    throw error;
-  }
+  // Return expected format
+  return {
+    success: true,
+    data: [...filtered],
+    message: 'Search completed successfully'
+  };
 };
