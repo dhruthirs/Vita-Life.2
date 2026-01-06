@@ -8,7 +8,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -22,8 +22,10 @@ const Navbar = () => {
     { name: 'Donor Map', path: '/donor-map' },
     { name: 'Register', path: '/register-donor' },
     { name: 'Reports', path: '/reports' },
-    { name: 'Admin Panel', path: '/dashboard' },
+    { name: 'Admin Panel', path: '/dashboard', restricted: true },
   ];
+
+  const visibleLinks = navLinks.filter(link => !link.restricted || isAdmin);
 
   const isHome = location.pathname === '/';
 
@@ -55,7 +57,7 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -117,7 +119,7 @@ const Navbar = () => {
         {isOpen && (
           <div className="md:hidden absolute top-16 left-0 right-0 bg-gradient-to-br from-white to-gray-50 border-b-2 border-red-200 shadow-lg">
             <div className="p-6 space-y-4">
-              {navLinks.map((link) => (
+              {visibleLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
