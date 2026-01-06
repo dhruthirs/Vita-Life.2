@@ -1,12 +1,24 @@
 import React, { useState } from "react";
 import { Menu, X, DropletIcon, Home, Search, FileText, Settings, LogOut, Map } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const MainLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
 
   const isActive = (path) => location.pathname === path;
+
+  const displayName = user?.name || "Guest";
+  const displayRole = isAdmin ? "Administrator" : isAuthenticated ? "Donor" : "Visitor";
+  const avatarLetter = (user?.name || "G").charAt(0).toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -31,7 +43,7 @@ const MainLayout = ({ children }) => {
           `}</style>
           <Link
             to="/"
-            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 ${
+            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 no-underline ${
               isActive("/")
                 ? "bg-gradient-to-r from-amber-400 to-yellow-300 text-red-900 shadow-lg scale-105"
                 : "hover:bg-white/15 text-red-100 hover:translate-x-1"
@@ -43,7 +55,7 @@ const MainLayout = ({ children }) => {
 
           <Link
             to="/search-donor"
-            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 ${
+            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 no-underline ${
               isActive("/search-donor")
                 ? "bg-gradient-to-r from-cyan-400 to-blue-300 text-red-900 shadow-lg scale-105"
                 : "hover:bg-white/15 text-red-100 hover:translate-x-1"
@@ -55,7 +67,7 @@ const MainLayout = ({ children }) => {
 
           <Link
             to="/donor-map"
-            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 ${
+            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 no-underline ${
               isActive("/donor-map")
                 ? "bg-gradient-to-r from-rose-400 to-pink-300 text-red-900 shadow-lg scale-105"
                 : "hover:bg-white/15 text-red-100 hover:translate-x-1"
@@ -67,7 +79,7 @@ const MainLayout = ({ children }) => {
 
           <Link
             to="/register-donor"
-            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 ${
+            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 no-underline ${
               isActive("/register-donor")
                 ? "bg-gradient-to-r from-green-400 to-emerald-300 text-red-900 shadow-lg scale-105"
                 : "hover:bg-white/15 text-red-100 hover:translate-x-1"
@@ -79,7 +91,7 @@ const MainLayout = ({ children }) => {
 
           <Link
             to="/reports"
-            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 ${
+            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 no-underline ${
               isActive("/reports")
                 ? "bg-gradient-to-r from-purple-400 to-indigo-300 text-red-900 shadow-lg scale-105"
                 : "hover:bg-white/15 text-red-100 hover:translate-x-1"
@@ -91,7 +103,7 @@ const MainLayout = ({ children }) => {
 
           <Link
             to="/settings"
-            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 ${
+            className={`nav-item flex items-center space-x-4 px-4 py-3 rounded-xl transition-all transform duration-200 no-underline ${
               isActive("/settings")
                 ? "bg-gradient-to-r from-orange-400 to-red-300 text-red-900 shadow-lg scale-105"
                 : "hover:bg-white/15 text-red-100 hover:translate-x-1"
@@ -103,7 +115,10 @@ const MainLayout = ({ children }) => {
         </nav>
 
         <div className="absolute bottom-4 left-0 right-0 px-4 nav-item" style={{ animationDelay: '0.3s' }}>
-          <button className="flex items-center space-x-4 w-full px-4 py-3 rounded-xl hover:bg-white/15 text-red-100 hover:text-white transition-all transform hover:scale-105 duration-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-4 w-full px-4 py-3 rounded-xl hover:bg-white/15 text-red-100 hover:text-white transition-all transform hover:scale-105 duration-200"
+          >
             <LogOut size={20} />
             {sidebarOpen && <span className="font-semibold">Logout</span>}
           </button>
@@ -132,11 +147,11 @@ const MainLayout = ({ children }) => {
 
             <div className="flex items-center space-x-4">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-800">Admin User</p>
-                <p className="text-xs text-gray-600">Administrator</p>
+                <p className="text-sm font-extrabold text-gray-800 leading-tight">{displayName}</p>
+                <p className="text-xs text-gray-600">{displayRole}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center text-white font-black shadow-lg hover:shadow-xl transition-all transform hover:scale-110 cursor-pointer">
-                A
+              <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center text-white font-black shadow-lg hover:shadow-xl transition-all transform hover:scale-110">
+                {avatarLetter}
               </div>
             </div>
           </div>

@@ -4,8 +4,15 @@ import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center text-white relative overflow-hidden bg-gradient-to-br from-red-900 via-red-700 to-rose-900"
+    <div
+      className="min-h-screen flex items-center justify-center text-white relative overflow-hidden"
+      style={{
+        backgroundImage:
+          "linear-gradient(135deg, rgba(128,0,32,0.78), rgba(200,30,60,0.75), rgba(255,99,146,0.65)), url('/bloodbg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
     >
       {/* Animated Decorative elements */}
       <style>{`
@@ -60,8 +67,8 @@ const Hero = () => {
           {/* Left Section */}
           <div className="space-y-8 animate-slide-left" style={{ animationDelay: '0.2s' }}>
             <div className="animate-bounce-in">
-              <h1 className="text-6xl md:text-7xl font-black leading-tight mb-6 text-white drop-shadow-2xl tracking-tighter no-underline">
-                Save Lives with <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-rose-300 bg-clip-text text-transparent animate-shimmer drop-shadow-xl font-black">Blood</span>
+              <h1 className="text-6xl md:text-7xl font-black leading-tight mb-6 text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)] tracking-tighter no-underline">
+                Save Lives with <span className="inline-block bg-gradient-to-r from-[#ff4d4f] via-[#ff0f3f] to-[#b3001b] bg-clip-text text-transparent animate-shimmer font-black drop-shadow-[0_0_18px_rgba(255,79,79,0.45)]">Blood</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-100 drop-shadow-lg max-w-md font-medium leading-relaxed">
                 Every donation can save up to 3 lives. Join our mission to ensure blood sufficiency across the nation.
