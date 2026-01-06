@@ -90,6 +90,11 @@ A modern web application connecting blood donors with those in need, featuring r
 
    Frontend runs on: `http://localhost:3000` (or next available port)
 
+### Deployment
+
+can use an application to perform this.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
 ## 🔐 Authentication
 
 ### Donor Login
