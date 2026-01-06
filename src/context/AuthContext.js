@@ -82,12 +82,16 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
 
-      if (data.success) {
-        // Auto-login after successful registration
+      // Some backends may not set `success: true` even when insert succeeds, so treat any
+      // OK/Created response with a returned id as success to avoid false negatives.
+      const insertedId = data?.data?._id || data?._id || data?.insertedId;
+      const apiSuccess = data?.success !== false && (insertedId || response.ok);
+
+      if (apiSuccess) {
         const userData = {
           name: donorData.name,
           email: `${donorData.phone}@donor.com`,
-          id: data.data._id,
+          id: insertedId || donorData._id,
           phone: donorData.phone,
           bloodGroup: donorData.bloodGroup,
           city: donorData.city,
@@ -101,13 +105,16 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('isAdmin', 'false');
         localStorage.setItem('isAuthenticated', 'true');
         
-        return { success: true, message: 'Registration successful! You are now logged in.' };
-      } else {
-        return { success: false, message: data.message || 'Registration failed. Please try again.' };
+        return { success: true, message: data?.message || 'Registration successful! You are now logged in.' };
       }
+
+      return { success: false, message: data?.message || 'Registration failed. Please try again.' };
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, message: 'Server error. Please ensure backend is running on port 5000.' };
+      const friendly = error?.message?.includes('fetch') || error?.message?.includes('Failed to fetch')
+        ? 'Cannot connect to backend server. Make sure it is running on http://localhost:5000'
+        : 'Server error. Please ensure backend is running on port 5000.';
+      return { success: false, message: friendly };
     }
   };
 
