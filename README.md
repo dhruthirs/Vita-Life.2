@@ -1,70 +1,197 @@
-# Getting Started with Create React App
+# Vita-Life - Blood Donation Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern web application connecting blood donors with those in need, featuring real-time donor search, interactive maps, and user authentication.
 
-## Available Scripts
+## 🩸 Features
 
-In the project directory, you can run:
+- **Donor Registration & Authentication**: Register as a donor with name + phone number login
+- **Interactive Maps**: Find nearby donors using geolocation with Leaflet maps
+- **Blood Group Search**: Search donors by blood group and city
+- **Admin Dashboard**: Separate admin interface for management
+- **Responsive Design**: Beautiful UI with Tailwind CSS and smooth animations
+- **Real-time Updates**: Live donor availability status
 
-### `npm start`
+## 🚀 Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Frontend
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- React 19.2.3
+- React Router 7.11.0
+- Tailwind CSS
+- Leaflet (React-Leaflet) for maps
+- Lucide React for icons
 
-### `npm test`
+### Backend
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Node.js & Express.js
+- MongoDB (with in-memory fallback)
+- Mongoose ODM
+- CORS enabled
 
-### `npm run build`
+## 📦 Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Node.js (v14 or higher)
+- npm or yarn
+- MongoDB Atlas account (optional - in-memory storage available)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Setup
 
-### `npm run eject`
+1. **Clone the repository**
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+   ```bash
+   git clone https://github.com/dhruthirs/Vita-Life.2.git
+   cd Vita-Life.2
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. **Install Frontend Dependencies**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+   ```bash
+   npm install
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Install Backend Dependencies**
 
-## Learn More
+   ```bash
+   cd backend
+   npm install
+   cd ..
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+4. **Configure Environment Variables**
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+   Create `backend/.env`:
 
-### Code Splitting
+   ```
+   MONGO_URI=your_mongodb_atlas_uri
+   LOCAL_MONGO_URI=mongodb://localhost:27017/bloodbank
+   USE_LOCAL_DB=false
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   If you don't have MongoDB Atlas, set `USE_LOCAL_DB=true` or leave it as is (in-memory storage will be used automatically).
 
-### Analyzing the Bundle Size
+5. **Start the Application**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+   **Terminal 1 - Backend:**
 
-### Making a Progressive Web App
+   ```bash
+   cd backend
+   npm start
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+   Backend runs on: `http://localhost:5000`
 
-### Advanced Configuration
+   **Terminal 2 - Frontend:**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+   ```bash
+   npm start
+   ```
 
-### Deployment
+   Frontend runs on: `http://localhost:3000` (or next available port)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🔐 Authentication
 
-### `npm run build` fails to minify
+### Donor Login
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Register first at `/register-donor` with:
+   - Full Name
+   - Phone Number (10 digits)
+   - Blood Group
+   - City, Age, etc.
+2. Login at `/login` using:
+   - **Name**: Your registered name
+   - **Password**: Your phone number
+
+### Admin Login
+
+- Go to `/admin-login`
+- **Username**: `admin`
+- **Password**: `admin123`
+
+## 🗺️ Map Feature
+
+The interactive map shows nearby donors based on:
+
+- Geolocation coordinates (latitude/longitude)
+- Configurable radius (default: 10km)
+- Blood group filtering
+- Real-time availability status
+
+## 📁 Project Structure
+
+```
+Vita-Life.2/
+├── backend/
+│   ├── index.js           # Express server with MongoDB
+│   ├── .env              # Environment variables
+│   └── package.json
+├── src/
+│   ├── components/
+│   │   ├── Navbar.js
+│   │   ├── Hero.js
+│   │   ├── DonorMap.js
+│   │   ├── DonorRegistrationForm.js
+│   │   ├── UserLogin.js
+│   │   └── AdminLogin.js
+│   ├── context/
+│   │   └── AuthContext.js
+│   └── App.js
+├── public/
+└── README.md
+```
+
+## 🛠️ API Endpoints
+
+### Donors
+
+- `GET /api/donors` - Get all donors
+- `POST /api/donors` - Register new donor
+- `GET /api/donors/search?bloodGroup=A+&city=Mumbai` - Search donors
+- `GET /api/donors/nearby?latitude=X&longitude=Y&radius=10` - Find nearby donors
+
+## 🎨 Design Features
+
+- Gradient animations and hover effects
+- Smooth transitions and loading states
+- Mobile-responsive layouts
+- Accessible form controls
+- Color-coded blood group badges
+
+## 🔄 In-Memory Storage
+
+The backend automatically falls back to in-memory storage if MongoDB is unavailable. This means:
+
+- ✅ Application works without database setup
+- ⚠️ Data is lost on server restart
+- 💡 Great for testing and development
+
+To use persistent storage, configure MongoDB Atlas and whitelist your IP.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+## 👨‍💻 Author
+
+**Dhruthi RS**
+
+- GitHub: [@dhruthirs](https://github.com/dhruthirs)
+
+## 🙏 Acknowledgments
+
+- Blood donation saves lives - thank you to all donors!
+- Built with React and modern web technologies
+- Maps powered by Leaflet and OpenStreetMap
+
+---
+
+**Need Help?** Open an issue or contact the maintainer.

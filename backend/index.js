@@ -16,12 +16,20 @@ app.use(cors());
 app.use(express.json());
 
 console.log('🗄️  Connecting to MongoDB...');
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI).then(() => {
+// MongoDB connection with better error handling
+const mongoURI = process.env.USE_LOCAL_DB === 'true' 
+  ? process.env.LOCAL_MONGO_URI 
+  : process.env.MONGO_URI;
+
+console.log(`📍 Attempting: ${mongoURI?.includes('localhost') ? 'Local MongoDB' : 'MongoDB Atlas'}`);
+
+mongoose.connect(mongoURI).then(() => {
   console.log('✅ MongoDB connected successfully');
+  console.log(`📊 Database: ${mongoose.connection.name}`);
 }).catch(err => {
   console.error('❌ MongoDB connection error:', err.message);
-  process.exit(1);
+  console.log('⚠️  Server continues running, but DB operations will fail.');
+  console.log('💡 Fix: Whitelist IP in Atlas or set USE_LOCAL_DB=true in .env');
 });
 
 // Donor Schema
@@ -30,37 +38,82 @@ const donorSchema = new mongoose.Schema({
   name: String,
   bloodGroup: String,
   city: String,
+  state: String,
   phone: String,
   email: String,
-  age: Number
+  age: Number,
+  latitude: Number,
+  longitude: Number,
+  isAvailable: Boolean,
+  rating: Number,
+  reviewCount: Number
 });
 
 const Donor = mongoose.model('Donor', donorSchema);
+
+// Temporary in-memory storage (fallback when MongoDB is unavailable)
+let tempDonors = [];
+let isMongoConnected = false;
+
+// Check MongoDB connection status
+mongoose.connection.on('connected', () => {
+  isMongoConnected = true;
+  console.log('✅ MongoDB ready for operations');
+});
+
+mongoose.connection.on('disconnected', () => {
+  isMongoConnected = false;
+  console.log('⚠️  MongoDB disconnected - using in-memory storage');
+});
 
 // Routes
 console.log('🛣️  Setting up routes...');
 app.get('/api/donors', async (req, res) => {
   console.log('📥 GET /api/donors request received');
   try {
-    const donors = await Donor.find();
-    console.log(`📤 Returning ${donors.length} donors`);
-    res.json(donors);
+    if (isMongoConnected) {
+      const donors = await Donor.find();
+      console.log(`📤 Returning ${donors.length} donors from MongoDB`);
+      res.json({ success: true, data: donors });
+    } else {
+      console.log(`📤 Returning ${tempDonors.length} donors from memory`);
+      res.json({ success: true, data: tempDonors });
+    }
   } catch (error) {
-    console.error('❌ Error fetching donors:', error.message);
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error, using fallback:', error.message);
+    res.json({ success: true, data: tempDonors });
   }
 });
 
 app.post('/api/donors', async (req, res) => {
   console.log('📥 POST /api/donors request received');
   try {
-    const donor = new Donor(req.body);
-    await donor.save();
-    console.log('✅ Donor saved:', donor.name);
-    res.status(201).json(donor);
+    if (isMongoConnected) {
+      const donor = new Donor(req.body);
+      await donor.save();
+      console.log('✅ Donor saved to MongoDB:', donor.name);
+      res.status(201).json(donor);
+    } else {
+      // Use in-memory storage
+      const donor = {
+        _id: Date.now().toString(),
+        ...req.body,
+        isAvailable: req.body.isAvailable !== false
+      };
+      tempDonors.push(donor);
+      console.log('✅ Donor saved to memory:', donor.name);
+      res.status(201).json(donor);
+    }
   } catch (error) {
-    console.error('❌ Error saving donor:', error.message);
-    res.status(400).json({ error: error.message });
+    // Fallback to memory storage
+    const donor = {
+      _id: Date.now().toString(),
+      ...req.body,
+      isAvailable: req.body.isAvailable !== false
+    };
+    tempDonors.push(donor);
+    console.log('⚠️  Error with MongoDB, saved to memory:', donor.name);
+    res.status(201).json(donor);
   }
 });
 
@@ -68,17 +121,80 @@ app.get('/api/donors/search', async (req, res) => {
   console.log('📥 GET /api/donors/search request received');
   try {
     const { bloodGroup, city } = req.query;
-    const query = {};
-    if (bloodGroup) query.bloodGroup = bloodGroup;
-    if (city) query.city = city;
-    const donors = await Donor.find(query);
-    console.log(`📤 Search returned ${donors.length} donors`);
-    res.json(donors);
+    
+    if (isMongoConnected) {
+      const query = {};
+      if (bloodGroup) query.bloodGroup = bloodGroup;
+      if (city) query.city = city;
+      const donors = await Donor.find(query);
+      console.log(`📤 Search returned ${donors.length} donors from MongoDB`);
+      res.json(donors);
+    } else {
+      // Search in-memory storage
+      let filtered = tempDonors;
+      if (bloodGroup) filtered = filtered.filter(d => d.bloodGroup === bloodGroup);
+      if (city) filtered = filtered.filter(d => d.city === city);
+      console.log(`📤 Search returned ${filtered.length} donors from memory`);
+      res.json(filtered);
+    }
   } catch (error) {
     console.error('❌ Error searching donors:', error.message);
-    res.status(500).json({ error: error.message });
+    // Fallback to memory search
+    let filtered = tempDonors;
+    const { bloodGroup, city } = req.query;
+    if (bloodGroup) filtered = filtered.filter(d => d.bloodGroup === bloodGroup);
+    if (city) filtered = filtered.filter(d => d.city === city);
+    res.json(filtered);
   }
 });
+
+// Nearby donors endpoint (for map feature)
+app.get('/api/donors/nearby', async (req, res) => {
+  console.log('📥 GET /api/donors/nearby request received');
+  try {
+    const { latitude, longitude, radius = 10, bloodGroup } = req.query;
+    
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    const radiusKm = parseFloat(radius);
+
+    let query = { latitude: { $exists: true }, longitude: { $exists: true } };
+    if (bloodGroup) query.bloodGroup = bloodGroup;
+
+    const allDonors = await Donor.find(query);
+
+    // Calculate distance and filter by radius
+    const nearbyDonors = allDonors
+      .map(donor => {
+        const distance = calculateDistance(lat, lng, donor.latitude, donor.longitude);
+        return { ...donor.toObject(), distance };
+      })
+      .filter(donor => donor.distance <= radiusKm)
+      .sort((a, b) => a.distance - b.distance);
+
+    console.log(`📤 Found ${nearbyDonors.length} nearby donors within ${radiusKm}km`);
+    res.json({ success: true, data: nearbyDonors });
+  } catch (error) {
+    console.error('❌ Error fetching nearby donors:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 // Test route
 app.get('/', (req, res) => {
@@ -99,17 +215,21 @@ try {
 
   server.on('error', (err) => {
     console.error('❌ Server error:', err.message);
-    process.exit(1);
   });
 
-  // Keep process alive
-  process.on('SIGINT', () => {
-    console.log('🛑 Shutting down server...');
+  // Only handle SIGTERM, keep SIGINT for manual termination
+  const shutdown = () => {
+    console.log('\n🛑 Shutting down server...');
     server.close(() => {
       console.log('✅ Server closed');
-      process.exit(0);
+      mongoose.connection.close(false, () => {
+        console.log('✅ MongoDB connection closed');
+        process.exit(0);
+      });
     });
-  });
+  };
+
+  process.on('SIGTERM', shutdown);
 
 } catch (error) {
   console.error('❌ Failed to start server:', error.message);

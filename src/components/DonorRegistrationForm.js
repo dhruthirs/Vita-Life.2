@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, CheckCircle } from "lucide-react";
-import { registerDonor } from "../api/donorApi";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const donorRegistrationSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name is too long"),
@@ -33,6 +34,8 @@ const DonorRegistrationForm = () => {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { register: registerAuth } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -47,7 +50,7 @@ const DonorRegistrationForm = () => {
     setIsLoading(true);
     setErrorMessage("");
     try {
-      // Map form data to API schema (using phone and city for backend compatibility)
+      // Map form data to API schema
       const donorData = {
         name: data.name,
         age: data.age,
@@ -58,23 +61,26 @@ const DonorRegistrationForm = () => {
         isAvailable: true,
       };
 
-      const response = await registerDonor(donorData);
+      // Register through auth context which handles backend call and auto-login
+      const result = await registerAuth(donorData);
 
-      if (response.success) {
+      if (result.success) {
         setSubmitStatus("success");
         reset();
-        // Clear success message after 5 seconds
-        setTimeout(() => setSubmitStatus(null), 5000);
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
       } else {
         setSubmitStatus("error");
-        setErrorMessage(response.message || "Registration failed. Please try again.");
+        setErrorMessage(result.message || "Registration failed. Please try again.");
         setTimeout(() => setSubmitStatus(null), 5000);
       }
     } catch (error) {
       console.error("Registration error:", error);
       setSubmitStatus("error");
       setErrorMessage(
-        error.message.includes("localhost:5000")
+        error.message?.includes("localhost:5000")
           ? "Cannot connect to backend server. Make sure it's running at http://localhost:5000"
           : error.message || "An unexpected error occurred. Please try again."
       );
@@ -98,7 +104,8 @@ const DonorRegistrationForm = () => {
           <CheckCircle className="text-green-700" size={24} />
           <div>
             <p className="font-semibold text-green-900">Registration Successful!</p>
-            <p className="text-green-800 text-sm">Thank you for registering. We'll contact you soon.</p>
+            <p className="text-green-800 text-sm">You are now logged in! Redirecting to dashboard...</p>
+            <p className="text-green-700 text-xs mt-1">📱 Your phone number ({registerAuth ? 'saved' : ''}) is your login password</p>
           </div>
         </div>
       )}
