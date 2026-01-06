@@ -1,81 +1,83 @@
+// src/components/DonorSearchPage.js
 import React, { useState, useEffect } from "react";
-import { Search, Phone, Mail } from "lucide-react";
-import { searchDonors } from "../api/donorApi";
+import { Search, Phone } from "lucide-react";
+import { getAllDonors } from "../api/donorApi"; // make sure this function exists
 
 const DonorSearchPage = () => {
+  const [donors, setDonors] = useState([]);
+  const [filteredDonors, setFilteredDonors] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBloodType, setSelectedBloodType] = useState("");
-  const [filteredDonors, setFilteredDonors] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const bloodTypes = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
 
-  // Perform search when filters change
+  // Fetch all donors from backend on mount
   useEffect(() => {
-    performSearch();
-  }, [selectedBloodType, searchQuery]);
-
-  const performSearch = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await searchDonors(selectedBloodType, searchQuery);
-
-      if (response.success) {
-        // Filter results based on search query (name, location, phone)
-        let results = response.data;
-        
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          results = results.filter(donor =>
-            donor.name.toLowerCase().includes(query) ||
-            donor.city.toLowerCase().includes(query) ||
-            donor.phone.includes(query)
-          );
+    const fetchDonors = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllDonors();
+        if (response.success) {
+          setDonors(response.data);
+          setFilteredDonors(response.data);
+        } else {
+          setError(response.message || "Failed to fetch donors");
         }
-
-        setFilteredDonors(results);
-      } else {
-        setError(response.message || 'Failed to search donors');
+      } catch (err) {
+        console.error("Error fetching donors:", err);
+        setError("Backend not reachable. Make sure your server is running at http://localhost:5000");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error searching donors:', err);
-      setError('Backend server is not running. Make sure to start it at http://localhost:5000');
-      setFilteredDonors([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleContactDonor = (donor) => {
-    // Replace with your actual contact logic
+    fetchDonors();
+  }, []);
+
+  // Filter donors whenever search or blood type changes
+  useEffect(() => {
+    let results = donors;
+
+    if (selectedBloodType) {
+      results = results.filter(d => d.bloodGroup === selectedBloodType);
+    }
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      results = results.filter(
+        d =>
+          d.name.toLowerCase().includes(query) ||
+          d.city.toLowerCase().includes(query) ||
+          d.phone.includes(query)
+      );
+    }
+
+    setFilteredDonors(results);
+  }, [searchQuery, selectedBloodType, donors]);
+
+  const handleContactDonor = donor => {
     alert(`Contact ${donor.name} at ${donor.phone}`);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Search Donors</h1>
-        <p className="text-gray-700 mt-1">Find donors by blood type or location</p>
-      </div>
+    <div className="space-y-6 p-4">
+      <h1 className="text-3xl font-bold text-gray-900">Search Donors</h1>
+      <p className="text-gray-700 mt-1">Find donors by blood type or location</p>
 
-      {/* Filter Bar */}
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4 md:flex md:items-end md:space-y-0 md:space-x-4">
-        {/* Blood Type Filter */}
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
+        {/* Blood Group */}
         <div className="flex-1">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Blood Group
-          </label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Blood Group</label>
           <select
             value={selectedBloodType}
-            onChange={(e) => setSelectedBloodType(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+            onChange={e => setSelectedBloodType(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
           >
             <option value="">All Blood Types</option>
-            {bloodTypes.map((type) => (
+            {bloodTypes.map(type => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -83,7 +85,7 @@ const DonorSearchPage = () => {
           </select>
         </div>
 
-        {/* Location/Search Filter */}
+        {/* Search Query */}
         <div className="flex-1">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Location / Name / Phone
@@ -92,10 +94,10 @@ const DonorSearchPage = () => {
             <Search className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Enter location, name, or phone..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Enter location, name, or phone..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
             />
           </div>
         </div>
@@ -103,105 +105,86 @@ const DonorSearchPage = () => {
         {/* Reset Button */}
         <button
           onClick={() => {
-            setSearchQuery("");
             setSelectedBloodType("");
+            setSearchQuery("");
           }}
-          className="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+          className="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors"
         >
           Reset
         </button>
       </div>
 
-      {/* Results Count */}
+      {/* Result Info */}
       <div className="text-sm text-gray-600">
-        {error ? (
+        {loading ? (
+          <span>Loading donors...</span>
+        ) : error ? (
           <span className="text-red-600 font-semibold">{error}</span>
-        ) : loading ? (
-          <span className="text-gray-600">Searching...</span>
         ) : (
-          <>
-            Found <span className="font-bold text-gray-900">{filteredDonors.length}</span> donor(s)
-          </>
+          <>Found <strong>{filteredDonors.length}</strong> donor(s)</>
         )}
       </div>
 
       {/* Results Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white rounded-lg shadow-md overflow-x-auto">
         {loading ? (
           <div className="p-12 text-center">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-red-600"></div>
           </div>
         ) : filteredDonors.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-100 border-b-2 border-gray-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Blood Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Age</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">City</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Last Donation</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Action</th>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-100 border-b-2 border-gray-200">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Blood Type</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Age</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">City</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Last Donation</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDonors.map(donor => (
+                <tr key={donor._id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <td className="px-6 py-4 font-semibold">{donor.name}</td>
+                  <td className="px-6 py-4">{donor.bloodGroup}</td>
+                  <td className="px-6 py-4">{donor.age}</td>
+                  <td className="px-6 py-4">{donor.city}</td>
+                  <td className="px-6 py-4">{donor.phone}</td>
+                  <td className="px-6 py-4">{donor.lastDonationDate ? new Date(donor.lastDonationDate).toLocaleDateString() : "Never"}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      donor.isAvailable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                    }`}>
+                      {donor.isAvailable ? "Available" : "Not Available"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+  <div className="flex flex-wrap gap-2">
+    <button
+      onClick={() => handleContactDonor(donor)}
+      className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors"
+    >
+      Contact
+    </button>
+    <a
+      href={`tel:${donor.phone}`}
+      className="flex items-center justify-center px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+      title="Call donor"
+    >
+      <Phone size={16} />
+    </a>
+  </div>
+</td>
+
                 </tr>
-              </thead>
-              <tbody>
-                {filteredDonors.map((donor) => (
-                  <tr key={donor._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-gray-900">{donor.name}</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold">
-                        {donor.bloodGroup}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{donor.age}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{donor.city}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{donor.phone}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {donor.lastDonationDate 
-                        ? new Date(donor.lastDonationDate).toLocaleDateString() 
-                        : "Never"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                        donor.isAvailable 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {donor.isAvailable ? 'Available' : 'Not Available'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleContactDonor(donor)}
-                          className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                          Contact
-                        </button>
-                        <a
-                          href={`tel:${donor.phone}`}
-                          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                          title="Call donor"
-                        >
-                          <Phone size={16} />
-                        </a>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          <div className="p-12 text-center">
-            <Search className="mx-auto text-gray-400 mb-3" size={48} />
-            <p className="text-gray-600 font-medium">
-              {error ? `Error: ${error}` : 'No donors found matching your criteria'}
-            </p>
-            <p className="text-gray-500 text-sm mt-1">Try adjusting your search filters</p>
-          </div>
+          <div className="p-12 text-center text-gray-600">No donors found.</div>
         )}
       </div>
     </div>

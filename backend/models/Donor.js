@@ -37,7 +37,18 @@ const donorSchema = new mongoose.Schema({
   isAvailable: {
     type: Boolean,
     default: true
+  },
+
+  // 🔴 REQUIRED FOR MAP
+  latitude: {
+    type: Number,
+    required: true
+  },
+  longitude: {
+    type: Number,
+    required: true
   }
+
 }, {
   timestamps: true
 });

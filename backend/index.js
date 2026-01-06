@@ -87,6 +87,8 @@ app.get('/api/donors', async (req, res) => {
 
 app.post('/api/donors', async (req, res) => {
   console.log('📥 POST /api/donors request received');
+  console.log('📍 Incoming donor body:', req.body);
+
   try {
     if (isMongoConnected) {
       const donor = new Donor(req.body);
