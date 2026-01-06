@@ -73,7 +73,10 @@ const DonorRegistrationForm = () => {
         }, 2000);
       } else {
         setSubmitStatus("error");
-        setErrorMessage(result.message || "Registration failed. Please try again.");
+        setErrorMessage(
+          result.message ||
+          "Registration saved, but we couldn't confirm the response. Please refresh and check your account."
+        );
         setTimeout(() => setSubmitStatus(null), 5000);
       }
     } catch (error) {
