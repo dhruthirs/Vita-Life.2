@@ -68,7 +68,10 @@ const Hero = () => {
           <div className="space-y-8 animate-slide-left" style={{ animationDelay: '0.2s' }}>
             <div className="animate-bounce-in">
               <h1 className="text-6xl md:text-7xl font-black leading-tight mb-6 text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)] tracking-tighter no-underline">
-                Save Lives with <span className="inline-block bg-gradient-to-r from-[#ff4d4f] via-[#ff0f3f] to-[#b3001b] bg-clip-text text-transparent animate-shimmer font-black drop-shadow-[0_0_18px_rgba(255,79,79,0.45)]">Blood</span>
+                Save Lives with <span className="font-black" style={{
+                  color: '#dc2626',
+                  textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6), -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff'
+                }}>Blood</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-100 drop-shadow-lg max-w-md font-medium leading-relaxed">
                 Every donation can save up to 3 lives. Join our mission to ensure blood sufficiency across the nation.
@@ -109,39 +112,39 @@ const Hero = () => {
 
           {/* Right Section - Info Box */}
           <div className="space-y-6 animate-slide-up" style={{ animationDelay: '0.6s' }}>
-            <div className="bg-gradient-to-br from-white/20 via-white/12 to-white/8 rounded-3xl p-8 border-2 border-white/40 backdrop-blur-xl shadow-2xl hover:from-white/30 hover:via-white/20 hover:to-white/15 hover:border-amber-300/60 transition-all transform hover:scale-105 duration-300">
+            <div className="bg-gradient-to-br from-white/95 via-blue-50/90 to-indigo-50/85 rounded-3xl p-8 border-2 border-blue-200/50 backdrop-blur-xl shadow-2xl hover:shadow-3xl hover:border-blue-300/70 transition-all transform hover:scale-105 duration-300">
               <div className="space-y-6">
                 <div className="flex items-start space-x-4 group">
-                  <div className="w-14 h-14 bg-gradient-to-br from-amber-300 to-yellow-200 rounded-xl flex items-center justify-center group-hover:from-amber-200 group-hover:to-yellow-100 transition-all transform group-hover:scale-110 shadow-lg duration-300">
-                    <Droplet className="w-7 h-7 text-red-700 flex-shrink-0 drop-shadow-lg font-bold" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center group-hover:from-red-600 group-hover:to-rose-700 transition-all transform group-hover:scale-110 shadow-lg duration-300">
+                    <Droplet className="w-7 h-7 text-white flex-shrink-0 drop-shadow-lg font-bold" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-black text-xl mb-2 text-white drop-shadow-lg">Blood Urgency</h3>
-                    <p className="text-white/90 drop-shadow-md text-sm leading-relaxed">India requires 15 million units annually. We collect 13 million. Help bridge the gap!</p>
+                    <h3 className="font-black text-xl mb-2 text-gray-900 drop-shadow-sm">Blood Urgency</h3>
+                    <p className="text-gray-700 text-sm leading-relaxed font-medium">India requires 15 million units annually. We collect 13 million. Help bridge the gap!</p>
                   </div>
                 </div>
 
-                <div className="border-t border-white/20"></div>
+                <div className="border-t border-gray-200"></div>
 
                 <div className="flex items-start space-x-4 group">
-                  <div className="w-14 h-14 bg-gradient-to-br from-rose-300 to-pink-200 rounded-xl flex items-center justify-center group-hover:from-rose-200 group-hover:to-pink-100 transition-all transform group-hover:scale-110 shadow-lg duration-300">
-                    <Heart className="w-7 h-7 text-red-700 flex-shrink-0 drop-shadow-lg font-bold" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:from-green-600 group-hover:to-emerald-700 transition-all transform group-hover:scale-110 shadow-lg duration-300">
+                    <Heart className="w-7 h-7 text-white flex-shrink-0 drop-shadow-lg font-bold" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-black text-xl mb-2 text-white drop-shadow-lg">Safe & Easy</h3>
-                    <p className="text-white/90 drop-shadow-md text-sm leading-relaxed">Professional medical staff ensures safe donation process. Takes just 10-15 minutes.</p>
+                    <h3 className="font-black text-xl mb-2 text-gray-900 drop-shadow-sm">Safe & Easy</h3>
+                    <p className="text-gray-700 text-sm leading-relaxed font-medium">Professional medical staff ensures safe donation process. Takes just 10-15 minutes.</p>
                   </div>
                 </div>
 
-                <div className="border-t border-white/20"></div>
+                <div className="border-t border-gray-200"></div>
 
                 <div className="flex items-start space-x-4 group">
-                  <div className="w-14 h-14 bg-gradient-to-br from-cyan-300 to-blue-200 rounded-xl flex items-center justify-center group-hover:from-cyan-200 group-hover:to-blue-100 transition-all transform group-hover:scale-110 shadow-lg duration-300">
-                    <Users className="w-7 h-7 text-red-700 flex-shrink-0 drop-shadow-lg font-bold" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:from-blue-600 group-hover:to-indigo-700 transition-all transform group-hover:scale-110 shadow-lg duration-300">
+                    <Users className="w-7 h-7 text-white flex-shrink-0 drop-shadow-lg font-bold" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-black text-xl mb-2 text-white drop-shadow-lg">Community Driven</h3>
-                    <p className="text-white/90 drop-shadow-md text-sm leading-relaxed">Join thousands of donors who have already saved lives. Be part of something meaningful.</p>
+                    <h3 className="font-black text-xl mb-2 text-gray-900 drop-shadow-sm">Community Driven</h3>
+                    <p className="text-gray-700 text-sm leading-relaxed font-medium">Join thousands of donors who have already saved lives. Be part of something meaningful.</p>
                   </div>
                 </div>
               </div>
