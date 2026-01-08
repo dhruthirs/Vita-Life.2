@@ -23,32 +23,57 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
-// Mock donor data
-const mockDonors = [
-  { _id: 1, name: "Alice", bloodGroup: "A+", city: "Bangalore", latitude: 12.9716, longitude: 77.5946, phone: "9999999991", isAvailable: true },
-  { _id: 2, name: "Bob", bloodGroup: "B+", city: "Bangalore", latitude: 12.9720, longitude: 77.5950, phone: "9999999992", isAvailable: false },
-  { _id: 3, name: "Charlie", bloodGroup: "O-", city: "Bangalore", latitude: 12.9750, longitude: 77.5930, phone: "9999999993", isAvailable: true },
-  { _id: 4, name: "David", bloodGroup: "AB+", city: "Bangalore", latitude: 12.9740, longitude: 77.5960, phone: "9999999994", isAvailable: true },
-  { _id: 5, name: "Eve", bloodGroup: "A-", city: "Bangalore", latitude: 12.9730, longitude: 77.5920, phone: "9999999995", isAvailable: false }
-];
-
 const DonorMap = () => {
-  const [donors, setDonors] = useState(mockDonors); // Use mock data
-  const [filteredDonors, setFilteredDonors] = useState(mockDonors);
-  const [userLocation, setUserLocation] = useState({ lat: 12.9716, lng: 77.5946 }); // Default Bangalore
+  const [donors, setDonors] = useState([]);
+  const [filteredDonors, setFilteredDonors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState({ lat: 12.9716, lng: 77.5946 }); // Default: Bangalore
   const [mapCenter, setMapCenter] = useState([12.9716, 77.5946]);
   const [bloodGroup, setBloodGroup] = useState("");
   const [radius, setRadius] = useState(10);
 
   const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-  // Filter donors based on blood group
-  const handleSearch = () => {
-    let results = donors;
-    if (bloodGroup) {
-      results = results.filter((d) => d.bloodGroup === bloodGroup);
+  // Get user's current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setMapCenter([latitude, longitude]);
+        },
+        () => {
+          // keep default location
+        }
+      );
     }
-    setFilteredDonors(results);
+  }, []);
+
+  // Fetch donors near the user from backend
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        latitude: String(userLocation.lat),
+        longitude: String(userLocation.lng),
+        radius: String(radius || 10),
+      });
+      if (bloodGroup) params.append("bloodGroup", bloodGroup);
+
+      const res = await fetch(`http://localhost:5000/api/donors/nearby?${params.toString()}`);
+      const data = await res.json();
+
+      if (data && (data.success || Array.isArray(data))) {
+        const list = Array.isArray(data) ? data : data.data || [];
+        setDonors(list);
+        setFilteredDonors(list);
+      }
+    } catch (e) {
+      console.error("Error fetching nearby donors", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,8 +100,8 @@ const DonorMap = () => {
           style={{ marginLeft: "10px", width: "120px" }}
         />
 
-        <button onClick={handleSearch} style={{ marginLeft: "10px" }}>
-          Search Donors
+        <button onClick={handleSearch} style={{ marginLeft: "10px" }} disabled={loading}>
+          {loading ? "Searching..." : "Search Donors"}
         </button>
       </div>
 
