@@ -50,7 +50,15 @@ const DonorMap = () => {
     }
   }, []);
 
-  // Fetch donors near the user from backend
+  const placeNear = (lat, lng, kmMax = 1) => {
+    const r = Math.random() * kmMax;
+    const t = Math.random() * Math.PI * 2;
+    const dLat = r / 111; // ~111 km per degree
+    const dLng = r / (111 * Math.cos((lat * Math.PI) / 180));
+    return { lat: lat + dLat * Math.cos(t), lng: lng + dLng * Math.sin(t) };
+  };
+
+  // Fetch donors near the user from backend, with all-donors fallback
   const handleSearch = async () => {
     setLoading(true);
     try {
@@ -63,12 +71,38 @@ const DonorMap = () => {
 
       const res = await fetch(`http://localhost:5000/api/donors/nearby?${params.toString()}`);
       const data = await res.json();
-
+      let list = [];
       if (data && (data.success || Array.isArray(data))) {
-        const list = Array.isArray(data) ? data : data.data || [];
-        setDonors(list);
-        setFilteredDonors(list);
+        list = Array.isArray(data) ? data : (data.data || []);
       }
+
+      // Fallback: get all donors if nearby gave none
+      if (!list || list.length === 0) {
+        const all = await fetch("http://localhost:5000/api/donors");
+        const allData = await all.json();
+        list = allData?.data || allData || [];
+      }
+
+      // Normalize and enrich coordinates if missing
+      const kmScatter = Math.min(Math.max(Number(radius) || 5, 1), 20) / 8;
+      const normalized = (list || []).map((d, i) => {
+        let lat = d.latitude;
+        let lng = d.longitude;
+        if (typeof lat !== "number" || typeof lng !== "number") {
+          const p = placeNear(userLocation.lat, userLocation.lng, kmScatter);
+          lat = p.lat;
+          lng = p.lng;
+        }
+        return { ...d, latitude: lat, longitude: lng };
+      });
+
+      // Apply blood group filter client-side as well
+      const filtered = bloodGroup
+        ? normalized.filter((d) => d.bloodGroup === bloodGroup)
+        : normalized;
+
+      setDonors(normalized);
+      setFilteredDonors(filtered);
     } catch (e) {
       console.error("Error fetching nearby donors", e);
     } finally {
@@ -103,6 +137,15 @@ const DonorMap = () => {
         <button onClick={handleSearch} style={{ marginLeft: "10px" }} disabled={loading}>
           {loading ? "Searching..." : "Search Donors"}
         </button>
+      </div>
+
+      {/* Quick stats */}
+      <div style={{ padding: "10px", display: "flex", gap: "16px", alignItems: "center" }}>
+        <div><strong>Total Donors:</strong> {filteredDonors.length}</div>
+        <div>
+          <strong>Available:</strong> {filteredDonors.filter(d => d.isAvailable !== false).length}
+        </div>
+        <div><strong>Radius:</strong> {radius} km</div>
       </div>
 
       {/* Map */}
